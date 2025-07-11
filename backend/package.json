@@ -1,0 +1,15 @@
+{
+  "name": "receipt-generator-backend",
+  "version": "1.0.0",
+  "description": "Backend for blockchain receipt generator",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "ethers": "^5.7.2",
+    "express": "^4.18.2",
+    "qrcode": "^1.5.2"
+  }
+}
