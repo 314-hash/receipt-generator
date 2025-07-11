@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Receipt Verification</title>
+</head>
+<body>
+  <h1>Receipt Verification</h1>
+  <div id="status">Checking...</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    (async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hash = urlParams.get('hash');
+      if (!hash) {
+        document.getElementById('status').textContent = 'No hash provided.';
+        return;
+      }
+
+      const provider = new ethers.providers.JsonRpcProvider('RPC_URL_REPLACE');
+      const contractAddress = 'CONTRACT_ADDRESS_REPLACE';
+      const abi = [
+        "event ReceiptLogged(address indexed sender, string receiptHash, uint256 timestamp)"
+      ];
+      const contract = new ethers.Contract(contractAddress, abi, provider);
+
+      try {
+        const filter = contract.filters.ReceiptLogged(null, hash);
+        const logs = await contract.queryFilter(filter);
+        const statusDiv = document.getElementById('status');
+        if (logs.length > 0) {
+          const log = logs[0];
+          const date = new Date(log.args.timestamp.toNumber() * 1000);
+          statusDiv.innerHTML = `
+            <p>✅ <strong>Receipt verified!</strong></p>
+            <p><strong>Seller:</strong> ${log.args.sender}</p>
+            <p><strong>Timestamp:</strong> ${date.toISOString()}</p>
+            <p><strong>Hash:</strong> ${hash}</p>`;
+        } else {
+          statusDiv.textContent = '❌ Receipt not found on chain.';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status').textContent = 'Error verifying receipt.';
+      }
+    })();
+  </script>
+</body>
+</html>
