@@ -18,8 +18,8 @@
         return;
       }
 
-      const provider = new ethers.providers.JsonRpcProvider('RPC_URL_REPLACE');
-      const contractAddress = 'CONTRACT_ADDRESS_REPLACE';
+      const provider = new ethers.providers.JsonRpcProvider('https://alfajores-forno.celo-testnet.org');
+      const contractAddress = '0x8715831b69dcc1c0a569b3aae3d268156e789fb6';
       const abi = [
         "event ReceiptLogged(address indexed sender, string receiptHash, uint256 timestamp)"
       ];
