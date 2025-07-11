@@ -1,0 +1,15 @@
+# --- Node & general ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Environment files ---
+.env            # never commit real secrets
+.env.*          # ignore any other env variations
+!.env.sample    # …except keep the sample for reference
+
+# --- OS / editor cruft ---
+.DS_Store
+.idea/
+.vscode/
