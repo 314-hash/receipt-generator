@@ -1,31 +1,68 @@
-<script>
-  (async () => {
-    const hash = new URLSearchParams(location.search).get("hash");
-    const statusDiv = document.getElementById("status");
-    if (!hash) return statusDiv.textContent = "No hash.";
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Receipt Verification</title>
+</head>
+<body>
+  <h1>Receipt Verification</h1>
+  <div id="status">Checking...</div>
 
-    const provider = new ethers.providers.JsonRpcProvider("https://alfajores-forno.celo-testnet.org");
-    const contractAddress = "0x8715831b69dcc1c0a569b3aae3d268156e789fb6";
-    const abi = ["event ReceiptLogged(address indexed sender, string receiptHash, uint256 timestamp)"];
-    const contract = new ethers.Contract(contractAddress, abi, provider);
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    (async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hash = urlParams.get("hash");
+      const statusDiv = document.getElementById("status");
 
-    try {
-      const logs = await contract.queryFilter(contract.filters.ReceiptLogged(), 0, "latest");
-      const match = logs.find(log => log.args.receiptHash === hash);
-
-      if (match) {
-        const date = new Date(match.args.timestamp.toNumber() * 1000);
-        statusDiv.innerHTML = `
-          <p>✅ <strong>Receipt verified!</strong></p>
-          <p><strong>Seller:</strong> ${match.args.sender}</p>
-          <p><strong>Timestamp:</strong> ${date.toISOString()}</p>
-          <p><strong>Hash:</strong> ${hash}</p>`;
-      } else {
-        statusDiv.textContent = "❌ Receipt not found on chain.";
+      if (!hash) {
+        statusDiv.textContent = "❌ No hash provided.";
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      statusDiv.textContent = "Error verifying receipt.";
+
+      const provider = new ethers.providers.JsonRpcProvider("https://alfajores-forno.celo-testnet.org");
+      const contractAddress = "0x8715831b69dcc1c0a569b3aae3d268156e789fb6";
+      const abi = [
+        "event ReceiptLogged(address indexed sender, string receiptHash, uint256 timestamp)"
+      ];
+      const contract = new ethers.Contract(contractAddress, abi, provider);
+
+      try {
+        const logs = await contract.queryFilter(contract.filters.ReceiptLogged(), 0, "latest");
+        const match = logs.find(log => log.args.receiptHash === hash);
+
+        if (match) {
+          const date = new Date(match.args.timestamp.toNumber() * 1000);
+          statusDiv.innerHTML = `
+            <p>✅ <strong>Receipt verified!</strong></p>
+            <p><strong>Seller:</strong> ${match.args.sender}</p>
+            <p><strong>Timestamp:</strong> ${date.toISOString()}</p>
+            <p><strong>Hash:</strong> <span id="receiptHash">${hash}</span>
+              <button onclick="copyHash()" style="margin-left:10px;">📋 Copy</button>
+            </p>
+            <p id="copyStatus" style="color: green;"></p>`;
+        } else {
+          statusDiv.textContent = "❌ Receipt not found on chain.";
+        }
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = "❌ Error verifying receipt.";
+      }
+    })();
+
+    // Copy-to-clipboard function
+    function copyHash() {
+      const hashText = document.getElementById("receiptHash").textContent;
+      navigator.clipboard.writeText(hashText).then(() => {
+        document.getElementById("copyStatus").textContent = "✅ Copied to clipboard!";
+        setTimeout(() => {
+          document.getElementById("copyStatus").textContent = "";
+        }, 2000);
+      }).catch(err => {
+        console.error(err);
+        document.getElementById("copyStatus").textContent = "❌ Copy failed.";
+      });
     }
-  })();
-</script>
+  </script>
+</body>
+</html>
