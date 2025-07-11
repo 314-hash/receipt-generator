@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Receipt</title>
+</head>
+<body>
+  <h1>Create Receipt</h1>
+  <form id="receipt-form">
+    <label>Product: <input name="product" required></label><br>
+    <label>Quantity: <input name="quantity" type="number" required></label><br>
+    <label>Amount: <input name="amount" type="number" required></label><br>
+    <label>Customer: <input name="customer"></label><br>
+    <label>Notes: <input name="notes"></label><br>
+    <button type="submit">Submit</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('receipt-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      data.quantity = parseInt(data.quantity);
+      data.amount = parseFloat(data.amount);
+
+      const res = await fetch('http://localhost:3000/receipt', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+      if (json.qr) {
+        document.getElementById('result').innerHTML = `<p>Receipt Hash: ${json.hash}</p><img src="${json.qr}" alt="QR code" />`;
+      } else {
+        document.getElementById('result').textContent = 'Error creating receipt';
+      }
+    });
+  </script>
+</body>
+</html>
